@@ -4,7 +4,8 @@
   "version": "${version}",
   "name": "MCDict",
   "icon": "assets/mcdict/icon.png",
-  "description": "Data-driven key/value storage for Minecraft",
+  "description": "Unofficial port of MCDict maintained for Crooked Crooks by joaoh1; Data-driven key/value storage for Minecraft",
+  "authors": ["B0undaryBreaker", "joaoh1"],
   "license": "MIT",
   "contact": {
     "sources": "https://github.com/CottonMC/MCDict"
@@ -18,7 +19,6 @@
   "depends": {
     "fabricloader": ">=0.9.0",
     "fabric": "*",
-    "jankson": "*",
     "staticdata": "*"
   },
   "custom": {

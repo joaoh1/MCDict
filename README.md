@@ -2,6 +2,11 @@
 
 # MCDict
 
+## Port Information
+
+This is an unofficial port of MCDict to Minecraft 1.16. It's meant to be used by Crooked Crooks, however, it might be usable for other mods.
+
+## Original Description
 
 [>> Downloads <<](https://github.com/CottonMC/MCDict/releases)
 
