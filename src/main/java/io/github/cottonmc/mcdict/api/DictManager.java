@@ -1,6 +1,5 @@
 package io.github.cottonmc.mcdict.api;
 
-import blue.endless.jankson.Jankson;
 import io.github.cottonmc.mcdict.MCDict;
 import net.fabricmc.fabric.mixin.tag.extension.AccessorFluidTags;
 import net.minecraft.block.Block;
@@ -12,6 +11,9 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
 import javax.annotation.Nullable;
+
+import com.google.gson.GsonBuilder;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,7 +23,7 @@ import java.util.function.Supplier;
 
 public class DictManager {
 	public static final Map<String, DictInfo<?>> DICT_TYPES = new HashMap<>();
-	public static final List<Function<Jankson.Builder, Jankson.Builder>> FACTORIES = new ArrayList<>();
+	public static final List<Function<GsonBuilder, GsonBuilder>> FACTORIES = new ArrayList<>();
 
 	public static final DictManager DATA_PACK = new DictManager();
 	public static final DictManager STATIC_DATA = new DictManager();
@@ -60,7 +62,7 @@ public class DictManager {
 	 * Add custom type serializers and deserializers for dicts to use.
 	 * @param factory A function that takes the passed Jankson builder, adds your serializers and deserializers, and returns the same Jankson builder.
 	 */
-	public static void addValueFactory(Function<Jankson.Builder, Jankson.Builder> factory) {
+	public static void addValueFactory(Function<GsonBuilder, GsonBuilder> factory) {
 		FACTORIES.add(factory);
 	}
 

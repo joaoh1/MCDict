@@ -1,34 +1,41 @@
 package io.github.cottonmc.mcdict;
 
-import blue.endless.jankson.Jankson;
-import blue.endless.jankson.JsonObject;
-import blue.endless.jankson.api.SyntaxError;
 import io.github.cottonmc.mcdict.api.Dict;
 import io.github.cottonmc.mcdict.api.DictManager;
 import net.fabricmc.fabric.api.resource.SimpleResourceReloadListener;
 import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.JsonHelper;
 import net.minecraft.util.profiler.Profiler;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+
 public class PackDictLoader implements SimpleResourceReloadListener<Map<String, Map<Identifier, List<JsonObject>>>> {
 	private static final String DATA_TYPE = "dicts/";
-	private static final String EXTENSION = ".json5";
+	private static final String EXTENSION = ".json";
 
 	@Override
 	public CompletableFuture<Map<String, Map<Identifier, List<JsonObject>>>> load(ResourceManager manager, Profiler profiler, Executor executor) {
 		return CompletableFuture.supplyAsync(() -> {
-			Jankson.Builder builder = Jankson.builder();
-			for (Function<Jankson.Builder, Jankson.Builder> factory : DictManager.FACTORIES) {
+			GsonBuilder builder = new GsonBuilder().setLenient().setPrettyPrinting().serializeNulls();
+			for (Function<GsonBuilder, GsonBuilder> factory : DictManager.FACTORIES) {
 				factory.apply(builder);
 			}
-			Jankson jankson = builder.build();
+			Gson gson = builder.create();
 			Map<String, Map<Identifier, List<JsonObject>>> ret = new HashMap<>();
 			for (String key : DictManager.DICT_TYPES.keySet()) {
 				Map<Identifier, List<JsonObject>> values = new HashMap<>();
@@ -43,11 +50,12 @@ public class PackDictLoader implements SimpleResourceReloadListener<Map<String, 
 						Collection<Resource> files = manager.getAllResources(id);
 						List<JsonObject> allVals = new ArrayList<>();
 						for (Resource file : files) {
-							JsonObject json = jankson.load(file.getInputStream());
+							Reader reader = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8));
+							JsonObject json = JsonHelper.deserialize(gson, reader, JsonObject.class);
 							allVals.add(json);
 						}
 						values.put(newId, allVals);
-					} catch (IOException | SyntaxError e) {
+					} catch (IOException | JsonParseException e) {
 						MCDict.logger.error("[MCDict] Failed to load file(s) for dict " + id.toString() + ": " + e.getMessage());
 					}
 				}
@@ -68,12 +76,12 @@ public class PackDictLoader implements SimpleResourceReloadListener<Map<String, 
 					Dict<?, ?> dict = registered.get(id);
 					List<JsonObject> jsons = typeDicts.get(id);
 					for (JsonObject json : jsons) {
-						boolean replace = json.getBoolean("replace", false);
-						boolean override = json.getBoolean("override", false);
-						JsonObject vals = json.getObject("values");
+						boolean replace = json.get("replace").getAsBoolean();
+						boolean override = json.get("override").getAsBoolean();
+						JsonObject vals = json.getAsJsonObject("values");
 						try {
 							dict.fromJson(replace, override, vals);
-						} catch (SyntaxError e) {
+						} catch (JsonParseException e) {
 							MCDict.logger.error("[MCDict] Failed to load {} dict {}: {}", type, id.toString(), e.getMessage());
 						}
 					}

@@ -30,7 +30,7 @@ if(rootProject.file('private.gradle').exists()) { //Publishing details
 
 archivesBaseName = "${project.archives_base_name}"
 group = "${project.maven_group}"
-version = "${project.mod_version}+${project.minecraft_version}"
+version = "${project.mod_version}-crooked+${project.minecraft_version}"
 
 minecraft {
 }
@@ -49,10 +49,8 @@ dependencies {
 	compileOnly "com.google.code.findbugs:jsr305:3.0.2"
 
 	modImplementation "io.github.cottonmc:StaticData:${project.static_data_version}"
-	modImplementation "io.github.cottonmc:Jankson-Fabric:${project.jankson_version}"
 
 	//include "io.github.cottonmc:StaticData:${project.static_data_version}"
-	//include "io.github.cottonmc:Jankson-Fabric:${project.jankson_version}"
 }
 
 processResources {

@@ -1,13 +1,14 @@
 package io.github.cottonmc.mcdict.api;
 
-import blue.endless.jankson.JsonObject;
-import blue.endless.jankson.api.SyntaxError;
 import net.minecraft.tag.Tag;
 import net.minecraft.util.Identifier;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.Random;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 
 /**
  * Data-driven key-value storage.
@@ -72,7 +73,7 @@ public interface Dict<T, V> {
 	 * @param entries A JsonObject full of entries to deserialize. Keys will be IDs of either registered T or tags of T.
 	 * @throws SyntaxError If an entry is malformed, give up loading the dict and throw.
 	 */
-	void fromJson(boolean replace, boolean override, JsonObject entries) throws SyntaxError;
+	void fromJson(boolean replace, boolean override, JsonObject entries) throws JsonParseException;
 
 	/**
 	 * Serialize a dict to JSON.

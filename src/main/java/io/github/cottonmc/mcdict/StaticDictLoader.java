@@ -1,18 +1,25 @@
 package io.github.cottonmc.mcdict;
 
-import blue.endless.jankson.Jankson;
-import blue.endless.jankson.JsonObject;
-import blue.endless.jankson.api.SyntaxError;
 import com.google.common.collect.ImmutableSet;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+
 import io.github.cottonmc.mcdict.api.Dict;
 import io.github.cottonmc.mcdict.api.DictManager;
 import io.github.cottonmc.staticdata.StaticDataItem;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.JsonHelper;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -21,14 +28,14 @@ import java.util.stream.Stream;
 
 public class StaticDictLoader {
 	private static final String DATA_TYPE = "dicts/";
-	private static final String EXTENSION = ".json5";
+	private static final String EXTENSION = ".json";
 
 	public static void load() {
-		Jankson.Builder builder = Jankson.builder();
-		for (Function<Jankson.Builder, Jankson.Builder> factory : DictManager.FACTORIES) {
+		GsonBuilder builder = new GsonBuilder().setLenient().setPrettyPrinting().serializeNulls();
+		for (Function<GsonBuilder, GsonBuilder> factory : DictManager.FACTORIES) {
 			factory.apply(builder);
 		}
-		Jankson jankson = builder.build();
+		Gson gson = builder.create();
 		for (String key : DictManager.DICT_TYPES.keySet()) {
 			Map<Identifier, Dict<?, ?>> dicts = DictManager.STATIC_DATA.dicts.get(key);
 			Set<StaticDataItem> data = getContentInDirectory("dicts/" + key);
@@ -41,16 +48,17 @@ public class StaticDictLoader {
 				}
 				try {
 					Dict<?, ?> dict = dicts.get(newId);
-					JsonObject json = jankson.load(item.createInputStream());
-					boolean replace = json.getBoolean("replace", false);
-					boolean override = json.getBoolean("override", false);
-					JsonObject vals = json.getObject("values");
+					Reader reader = new BufferedReader(new InputStreamReader(item.createInputStream(), StandardCharsets.UTF_8));
+					JsonObject json = JsonHelper.deserialize(gson, reader, JsonObject.class);
+					boolean replace = json.get("replace").getAsBoolean();
+					boolean override = json.get("override").getAsBoolean();
+					JsonObject vals = json.getAsJsonObject("values");
 					try {
 						dict.fromJson(replace, override, vals);
-					} catch (SyntaxError e) {
+					} catch (JsonParseException e) {
 						MCDict.logger.error("[MCDict] Failed to load {} dict {}: {}", key, id.toString(), e.getMessage());
 					}
-				} catch (IOException | SyntaxError e) {
+				} catch (IOException | JsonParseException e) {
 					MCDict.logger.error("[MCDict] Failed to load file(s) for dict " + id.toString() + ": " + e.getMessage());
 				}
 			}

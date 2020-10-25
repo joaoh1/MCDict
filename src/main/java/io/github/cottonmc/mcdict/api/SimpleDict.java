@@ -1,9 +1,13 @@
 package io.github.cottonmc.mcdict.api;
 
-import blue.endless.jankson.JsonObject;
-import blue.endless.jankson.JsonPrimitive;
-import blue.endless.jankson.api.SyntaxError;
 import com.google.common.collect.Lists;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonPrimitive;
+
 import net.minecraft.tag.Tag;
 import net.minecraft.tag.TagGroup;
 import net.minecraft.util.Identifier;
@@ -108,13 +112,15 @@ public class SimpleDict<T, V> implements Dict<T, V> {
 
 	//TODO: libcd condition support?
 	@Override
-	public void fromJson(boolean replace, boolean override, JsonObject entries) throws SyntaxError {
+	public void fromJson(boolean replace, boolean override, JsonObject entries) throws JsonParseException {
 		Map<T, V> vals = values();
 		if (replace) vals.clear();
-		for (String key : entries.keySet()) {
-			V value = entries.get(type, key);
+		for (Map.Entry<String, JsonElement> jsonEntry : entries.entrySet()) {
+			String key = jsonEntry.getKey();
+			Gson gson = new GsonBuilder().create();
+			V value = gson.fromJson(jsonEntry.getValue().toString(), type);
 			if (value == null) {
-				throw new SyntaxError("Dict value for entry " + key + " could not be parsed into type " + type.getName());
+				throw new JsonParseException("Dict value for entry " + key + " could not be parsed into type " + type.getName());
 			}
 			if (key.indexOf('#') == 0) {
 				Map<Identifier, V> pendingTagsMap = new HashMap<Identifier, V>();
@@ -130,7 +136,7 @@ public class SimpleDict<T, V> implements Dict<T, V> {
 			} else {
 				Optional<T> entry = registry.getOrEmpty(new Identifier(key));
 				if (!entry.isPresent())
-					throw new SyntaxError("Dict references registered object " + key + " that does not exist");
+					throw new JsonParseException("Dict references registered object " + key + " that does not exist");
 				if (!vals.containsKey(entry.get()) || override) vals.put(entry.get(), value);
 			}
 		}
@@ -139,12 +145,12 @@ public class SimpleDict<T, V> implements Dict<T, V> {
 	@Override
 	public JsonObject toJson() {
 		JsonObject json = new JsonObject();
-		json.put("replace", new JsonPrimitive(false));
+		json.add("replace", new JsonPrimitive(false));
 		JsonObject vals = new JsonObject();
 		for (T t : values().keySet()) {
-			vals.putDefault(registry.getId(t).toString(), values.get(t), type, null);
+			vals.addProperty(registry.getId(t).toString(), values.get(t).toString());
 		}
-		json.put("values", vals);
+		json.add("values", vals);
 		return json;
 	}
 
