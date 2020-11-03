@@ -4,7 +4,7 @@
 
 ## Port Information
 
-This is an unofficial port of MCDict to Minecraft 1.16.3. It's meant to be used by Crooked Crooks, however, it might be usable for other mods.
+This is an unofficial port of MCDict to Minecraft 1.16.3. Meant to be used by Crooked Crooks, so it might not be ideal to use it on other mods, however, it's perfectly functional.
 
 ## Original Description
 

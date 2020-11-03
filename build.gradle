@@ -1,82 +1,69 @@
-buildscript {
-	repositories {
-		jcenter()
-		maven {
-			name = 'Fabric'
-			url = 'http://maven.modmuss50.me/'
-		}
-	}
-	dependencies {
-		classpath "net.fabricmc:fabric-loom:0.5-SNAPSHOT"
-	}
-}
-
 plugins {
-	id 'java'
-	id 'eclipse'
-	id 'idea'
+	id 'fabric-loom' version '0.5-SNAPSHOT'
 	id 'maven-publish'
-	id "com.jfrog.artifactory" version "4.9.0"
 }
 
-apply plugin: net.fabricmc.loom.LoomGradlePlugin
+archivesBaseName = project.archives_base_name
+group = project.maven_group
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
-if(rootProject.file('private.gradle').exists()) { //Publishing details
-	apply from: 'private.gradle'
+if (System.env.GITHUB_ACTIONS == "true") {
+	version = "${project.mod_version}-github.${System.env.GITHUB_RUN_NUMBER}"
+} else {
+	version = project.mod_version
 }
 
-archivesBaseName = "${project.archives_base_name}"
-group = "${project.maven_group}"
-version = "${project.mod_version}-crooked+${project.minecraft_version}"
-
-minecraft {
+sourceSets {
+	testmod {
+		compileClasspath += main.compileClasspath
+		runtimeClasspath += main.runtimeClasspath
+	}
 }
 
 repositories {
+	maven { url "https://server.bbkr.space/artifactory/libs-release" }
 	mavenCentral()
-	maven { url "http://maven.fabricmc.net/" }
-	maven { url "http://server.bbkr.space:8081/artifactory/libs-release" }
 }
 
 dependencies {
+	// to change the versions, see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.minecraft_version}+build.${project.yarn_build}:v2"
+	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-	compileOnly "com.google.code.findbugs:jsr305:3.0.2"
-
+	
 	modImplementation "io.github.cottonmc:StaticData:${project.static_data_version}"
-
 	//include "io.github.cottonmc:StaticData:${project.static_data_version}"
+
+	testmodImplementation sourceSets.main.output
 }
 
 processResources {
 	inputs.property "version", project.version
-	from(sourceSets.main.resources.srcDirs) {
-		include "fabric.mod.json"
-		expand version: project.version
-	}
-	from(sourceSets.main.resources.srcDirs) {
-		exclude "fabric.mod.json"
+
+	filesMatching("fabric.mod.json") {
+		expand "version": project.version
 	}
 }
 
-// ensure that the encoding is set to UTF-8, no matter what the system default is
-// this fixes some edge cases with special characters not displaying correctly
-// see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
+// ensure that the encoding is set to UTF-8 and that the build works on Java 8.
 tasks.withType(JavaCompile) {
 	options.encoding = "UTF-8"
+	options.release = 8
 }
 
-// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-// if it is present.
-// If you remove this task, sources will not be generated.
-task sourcesJar(type: Jar, dependsOn: classes) {
-	classifier = "sources"
-	from sourceSets.main.allSource
+java {
+	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
+	// if it is present.
+	// If you remove this task, sources will not be generated.
+	withSourcesJar()
+
+	// if Java 8 is used, demand the next LTS release (Java 11)
+	toolchain {
+		if (JavaVersion.current().isJava8()) {
+			languageVersion = JavaLanguageVersion.of(11)
+		}
+	}
 }
 
 jar {
@@ -86,21 +73,11 @@ jar {
 // configure the maven publication
 publishing {
 	publications {
-		maven(MavenPublication) {
+		mavenJava(MavenPublication) {
 			// add all the jars that should be included when publishing to maven
-			//artifact(jar) {
-			//	builtBy remapJar
-			//}
-			artifact ("${project.buildDir.absolutePath}/libs/${archivesBaseName}-${project.version}.jar") { //release jar - file location not provided anywhere in loom
-				classifier null
+			artifact(remapJar) {
 				builtBy remapJar
 			}
-
-			artifact ("${project.buildDir.absolutePath}/libs/${archivesBaseName}-${project.version}-dev.jar") { //release jar - file location not provided anywhere in loom
-				classifier "dev"
-				builtBy remapJar
-			}
-
 			artifact(sourcesJar) {
 				builtBy remapSourcesJar
 			}
@@ -111,31 +88,5 @@ publishing {
 	repositories {
 		// uncomment to publish to the local maven
 		// mavenLocal()
-	}
-}
-
-artifactory {
-	if (project.hasProperty("artifactoryUsername")) {
-		contextUrl = "http://server.bbkr.space:8081/artifactory/"
-		publish {
-			repository {
-				if (version.contains("SNAPSHOT")) {
-					repoKey = "libs-snapshot"
-				} else {
-					repoKey = "libs-release"
-				}
-
-				username = artifactoryUsername
-				password = artifactoryPassword
-			}
-			defaults {
-				publications("maven")
-
-				publishArtifacts = true
-				publishPom = true
-			}
-		}
-	} else {
-		println "Cannot configure artifactory; please define ext.artifactoryUsername and ext.artifactoryPassword before running artifactoryPublish"
 	}
 }

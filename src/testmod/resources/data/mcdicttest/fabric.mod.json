@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "mcdicttest",
+  "version": "${version}",
+  "name": "MCDict Test Mod",
+  "description": "A mod to make sure MCDict works properly without any issues.",
+  "authors": ["joaoh1"],
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "io.github.joaoh1.mcdicttest.MCDictTestMod"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.9.0",
+    "fabric": "*",
+    "staticdata": "*"
+  },
+  "custom": {
+    "modmenu:api": true
+  }
+}

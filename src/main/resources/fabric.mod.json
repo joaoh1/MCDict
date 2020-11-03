@@ -4,11 +4,12 @@
   "version": "${version}",
   "name": "MCDict",
   "icon": "assets/mcdict/icon.png",
-  "description": "Unofficial port of MCDict maintained for Crooked Crooks by joaoh1; Data-driven key/value storage for Minecraft",
+  "description": "Data-driven key/value storage for Minecraft. Unofficial port of MCDict maintained for Crooked Crooks by joaoh1",
   "authors": ["B0undaryBreaker", "joaoh1"],
   "license": "MIT",
   "contact": {
-    "sources": "https://github.com/CottonMC/MCDict"
+    "issues": "https://github.com/joaoh1/MCDict/issues",
+    "sources": "https://github.com/joaoh1/MCDict"
   },
   "environment": "*",
   "entrypoints": {
