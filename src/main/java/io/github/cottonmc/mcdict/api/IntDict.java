@@ -20,7 +20,7 @@ public class IntDict<T> extends SimpleDict<T, Integer> {
 	
 	@Override
 	protected void loadPendingTags() {
-		if (this.pendingTags != null && !this.pendingTags.isEmpty()) {
+		if (!this.pendingTags.isEmpty()) {
 			List<Map<Identifier, Integer>> list = new ArrayList<>();
 			
 			this.pendingTags.forEach((tags, override) -> {
@@ -37,9 +37,7 @@ public class IntDict<T> extends SimpleDict<T, Integer> {
 				}
 			});
 			
-			list.forEach(entry -> {
-				this.pendingTags.remove(entry);
-			});
+			list.forEach(this.pendingTags::remove);
 		}
 	}
 

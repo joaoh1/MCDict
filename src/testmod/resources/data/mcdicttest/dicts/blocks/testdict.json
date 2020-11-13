@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "override": false,
+  "values": {
+    "#minecraft:leaves": 10,
+    "minecraft:grass_block": 5,
+    "minecraft:dirt": 1
+  }
+}

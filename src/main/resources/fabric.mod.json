@@ -4,7 +4,7 @@
   "version": "${version}",
   "name": "MCDict",
   "icon": "assets/mcdict/icon.png",
-  "description": "Data-driven key/value storage for Minecraft. Unofficial port of MCDict maintained for Crooked Crooks by joaoh1",
+  "description": "Adds dicts, which are similar to tags but stores key/value pairs instead. Unofficially ported to 1.16+ for usage in Crooked Crooks by joaoh1",
   "authors": ["B0undaryBreaker", "joaoh1"],
   "license": "MIT",
   "contact": {

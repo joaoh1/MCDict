@@ -19,8 +19,10 @@ public class MCDict implements ModInitializer {
 	public void onInitialize() {
 		List<DictInitializer> entrypoints = FabricLoader.getInstance().getEntrypoints(MODID, DictInitializer.class);
 		entrypoints.forEach(DictInitializer::initDictTypes);
-		entrypoints.forEach(DictInitializer::registerDicts);
 		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new PackDictLoader());
-		StaticDictLoader.load();
+		if (FabricLoader.getInstance().isModLoaded("staticdata")) {
+			entrypoints.forEach(DictInitializer::registerDicts);
+			StaticDictLoader.load();
+		}
 	}
 }

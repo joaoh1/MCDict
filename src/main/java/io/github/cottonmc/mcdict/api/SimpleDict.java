@@ -52,9 +52,7 @@ public class SimpleDict<T, V> implements Dict<T, V> {
 				}
 			});
 			
-			list.forEach(entry -> {
-				this.pendingTags.remove(entry);
-			});
+			list.forEach(this.pendingTags::remove);
 		}
 	}
 
@@ -123,7 +121,7 @@ public class SimpleDict<T, V> implements Dict<T, V> {
 				throw new JsonParseException("Dict value for entry " + key + " could not be parsed into type " + type.getName());
 			}
 			if (key.indexOf('#') == 0) {
-				Map<Identifier, V> pendingTagsMap = new HashMap<Identifier, V>();
+				Map<Identifier, V> pendingTagsMap = new HashMap<>();
 				pendingTagsMap.put(new Identifier(key.substring(1)), value);
 				pendingTags.put(pendingTagsMap, override);
 				/*
